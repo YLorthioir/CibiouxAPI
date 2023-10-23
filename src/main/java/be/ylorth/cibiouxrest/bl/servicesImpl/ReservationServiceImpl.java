@@ -6,14 +6,13 @@ import be.ylorth.cibiouxrest.dal.models.FermetureEntity;
 import be.ylorth.cibiouxrest.dal.models.ReservationEntity;
 import be.ylorth.cibiouxrest.dal.repositories.FermetureRepository;
 import be.ylorth.cibiouxrest.dal.repositories.ReservationRepository;
-import be.ylorth.cibiouxrest.pl.models.reservation.Reservation;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.DataBinder;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,12 +51,29 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public Optional<ReservationEntity> getReservation(Long id) {
-        return Optional.empty();
+        Specification<ReservationEntity> specification = (((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"),id)));
+        return reservationRepository.findOne(specification);
     }
 
     @Override
-    public Set<ReservationEntity> getReservationSemaine(LocalDate lundi, LocalDate Dimanche) {
-        return null;
+    public Set<ReservationEntity> getReservationSemaine(LocalDate lundi, LocalDate dimanche) {
+        Specification<ReservationEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.and(
+                criteriaBuilder.or(
+                        criteriaBuilder.and(
+                                criteriaBuilder.greaterThanOrEqualTo(root.get("dateReservationEntree"), lundi),
+                                criteriaBuilder.lessThanOrEqualTo(root.get("dateReservationEntree"), dimanche)
+                        ),
+                        criteriaBuilder.and(
+                                criteriaBuilder.greaterThanOrEqualTo(root.get("dateReservationSortie"), lundi),
+                                criteriaBuilder.lessThan(root.get("dateReservationSortie"), dimanche)
+                        )
+                ));
+        
+        /*reservationRepository.findAll().stream()
+                .filter(reservationEntity -> (reservationEntity.getDateReservationEntree().isAfter(lundi)&&reservationEntity.getDateReservationEntree().isBefore(dimanche))||(reservationEntity.getDateReservationSortie().minusDays(1).isAfter(lundi)&&reservationEntity.getDateReservationSortie().minusDays(1).isBefore(dimanche)))
+                .collect(Collectors.toSet());
+*/
+        return new HashSet<>(reservationRepository.findAll(specification));
     }
 
     @Override

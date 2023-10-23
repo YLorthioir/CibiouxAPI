@@ -28,6 +28,10 @@ public class ReservationEntity {
     @Column(nullable = false)
     private short nbPersonne;
     private String commentaire;
+    @ElementCollection
+    @CollectionTable(name = "repas")
+    @MapKeyColumn(name = "date")
+    @Column(name = "repas")
     private HashMap<LocalDate, Boolean> repas;
     
 }

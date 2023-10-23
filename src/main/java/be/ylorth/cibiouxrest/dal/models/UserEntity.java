@@ -2,6 +2,7 @@ package be.ylorth.cibiouxrest.dal.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,6 +13,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "\"User\"")
+@Setter
+@Getter
 public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -20,7 +23,6 @@ public class UserEntity implements UserDetails {
     private String login;
     @Column(nullable = false)
     private String password;
-    @Getter
     @Enumerated(value = EnumType.STRING)
     private UserRole userRole;
     
