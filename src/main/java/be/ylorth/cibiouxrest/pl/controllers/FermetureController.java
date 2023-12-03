@@ -5,6 +5,7 @@ import be.ylorth.cibiouxrest.pl.models.Fermeture;
 import jakarta.validation.constraints.NotEmpty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class FermetureController {
     }
     
     @GetMapping("/all")
-    public ResponseEntity<Page<Fermeture>> getAll(Pageable pageable){
+    public ResponseEntity<Page<Fermeture>> getAll(@PageableDefault Pageable pageable){
         return ResponseEntity.ok(fermetureService.getAll(pageable).map(Fermeture::fromEntity));
     }
     
