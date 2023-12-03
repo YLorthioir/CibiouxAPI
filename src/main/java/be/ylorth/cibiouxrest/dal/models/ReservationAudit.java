@@ -1,13 +1,13 @@
 package be.ylorth.cibiouxrest.dal.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import be.ylorth.cibiouxrest.dal.utils.ReservationAuditListener;
+import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 public class ReservationAudit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,4 +18,5 @@ public class ReservationAudit {
     private String ancienneValeur;
     private String nouvelleValeur;
     private LocalDateTime heureDeModification;
+    
 }

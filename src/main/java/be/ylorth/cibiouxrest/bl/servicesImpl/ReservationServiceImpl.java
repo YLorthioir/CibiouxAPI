@@ -1,5 +1,6 @@
 package be.ylorth.cibiouxrest.bl.servicesImpl;
 
+import be.ylorth.cibiouxrest.bl.exception.NotFoundException;
 import be.ylorth.cibiouxrest.bl.models.Calendrier;
 import be.ylorth.cibiouxrest.bl.services.ReservationService;
 import be.ylorth.cibiouxrest.dal.models.FermetureEntity;
@@ -10,11 +11,10 @@ import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,15 +35,16 @@ public class ReservationServiceImpl implements ReservationService {
                 .map(FermetureEntity::getDateDeFermeture)
                 .filter(dateDeFermeture -> dateDeFermeture.isAfter(LocalDate.now()))
                 .collect(Collectors.toSet());
-
+        
         Set<LocalDate> reserve = reservationRepository.findAll().stream()
-                .filter(reservation -> reservation.getDateReservationEntree().isBefore(LocalDate.now().minusDays(1)))
+                .filter(reservation -> reservation.getDateReservationEntree().isAfter(LocalDate.now().minusDays(1)) || reservation.getDateReservationSortie().isAfter(LocalDate.now()))
                 .flatMap(reservation -> {
                     LocalDate dateEntree = reservation.getDateReservationEntree();
                     LocalDate dateSortie = reservation.getDateReservationSortie();
                     return Stream.iterate(dateEntree, date -> date.plusDays(1))
-                            .limit(ChronoUnit.DAYS.between(dateEntree, dateSortie.plusDays(1)));
+                            .limit(ChronoUnit.DAYS.between(dateEntree, dateSortie));
                 })
+                .filter(d -> d.isAfter(LocalDate.now().minusDays(1)))
                 .collect(Collectors.toSet());
         
         return new Calendrier(reserve, fermeture);
@@ -78,16 +79,34 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public void addReservation(ReservationForm form) {
-
+        if(form==null)
+            throw new IllegalArgumentException("form can't be null");
+        
+        reservationRepository.save(ReservationForm.toEntity(form));
     }
 
     @Override
     public void updateReservation(Long id, ReservationForm form) {
-
+        if(form==null)
+            throw new IllegalArgumentException("form can't be null");
+        
+        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(()->new NotFoundException("Reservation not found"));
+        
+        entity.setNom(form.nom());
+        entity.setPrenom(form.prenom());
+        entity.setCommentaire(form.commentaire());
+        entity.setEmail(form.email());
+        entity.setDateReservationEntree(form.dateReservationEntree());
+        entity.setDateReservationSortie(form.dateReservationSortie());
+        entity.setTelephone(form.telephone());
+        entity.setNbPersonne(form.nbPersonne());
+        entity.setRepas(new HashMap<>(form.repas()));
+        
+        reservationRepository.save(entity);
     }
 
     @Override
     public void deleteReservation(Long id) {
-
+        reservationRepository.deleteById(id);
     }
 }

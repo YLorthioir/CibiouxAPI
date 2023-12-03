@@ -1,4 +1,4 @@
-package be.ylorth.cibiouxrest.pl.gestion.controllers;
+package be.ylorth.cibiouxrest.pl.controllers;
 
 import be.ylorth.cibiouxrest.bl.services.AuthService;
 import be.ylorth.cibiouxrest.pl.models.auth.AuthResponse;
