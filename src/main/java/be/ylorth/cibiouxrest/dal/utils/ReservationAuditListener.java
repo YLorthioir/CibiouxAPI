@@ -50,8 +50,7 @@ public class ReservationAuditListener{
 
     private void saveAudit(ReservationEntity reservation, String action) {
         ReservationAudit auditEntry = new ReservationAudit();
-        auditEntry.setReservationId(reservation.getId());
-        auditEntry.setReservationId(reservation.getId());
+        auditEntry.setReservationId(reservation.getId());;
         auditEntry.setHeureDeModification(LocalDateTime.now());
         auditEntry.setAction(action);
         auditRepository.save(auditEntry);
