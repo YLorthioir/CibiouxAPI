@@ -4,9 +4,11 @@ package be.ylorth.cibiouxrest.pl.controllers;
 import be.ylorth.cibiouxrest.bl.exception.NotFoundException;
 import be.ylorth.cibiouxrest.bl.models.Calendrier;
 import be.ylorth.cibiouxrest.bl.services.ReservationService;
+import be.ylorth.cibiouxrest.dal.models.ReservationStatus;
 import be.ylorth.cibiouxrest.pl.models.reservation.Reservation;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,9 +42,20 @@ public class ReservationController {
         return ResponseEntity.ok(Reservation.fromEntity(reservationService.getReservation(id).orElseThrow(() -> new NotFoundException("Reservation not found"))));
     }
 
-    @PostMapping("/create")
-    public void create(@RequestBody @Valid ReservationForm form){
-        reservationService.addReservation(form);
+    @PostMapping("/createVisitor")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createVisitor(@RequestBody @Valid ReservationForm form){
+        reservationService.addReservationVisitor(form);
+    }
+
+    @PostMapping("/createDirection")
+    public void createDirection(@RequestBody @Valid ReservationForm form){
+        reservationService.addReservationVisitor(form);
+    }
+    
+    @PutMapping("/{id:[0-9]+}/updateStatus")
+    public void updateReservationStatus(@PathVariable Long id, @RequestParam String status){
+        reservationService.changeReservationStatus(id, ReservationStatus.valueOf(status));
     }
     
     @PutMapping("/{id:[0-9]+}")

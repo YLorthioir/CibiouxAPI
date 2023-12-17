@@ -1,6 +1,7 @@
 package be.ylorth.cibiouxrest.pl.utils.security;
 
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +24,9 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@ConfigurationProperties("app.security.cors")
 public class SecurityConfig {
 
-    @Setter
+    @Value("${app.security.cors.serverName}")
     private String serverName;
 
     @Bean
@@ -54,7 +54,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/reservation/{id:[0-9]+}").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/reservation/{id:[0-9]+}").permitAll()
                         .requestMatchers(HttpMethod.DELETE,"/reservation/{id:[0-9]+}").authenticated()
-                        .requestMatchers(HttpMethod.POST,"/reservation/create").authenticated()
+                        .requestMatchers(HttpMethod.POST,"/reservation/createVisitor").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/reservation/createDirection").authenticated()
+                        .requestMatchers(HttpMethod.PUT,"/reservation/{id:[0-9]+}/updateStatus").authenticated()
                             
                     //Fermeture
                         .requestMatchers(HttpMethod.GET,"/fermeture/all").permitAll()

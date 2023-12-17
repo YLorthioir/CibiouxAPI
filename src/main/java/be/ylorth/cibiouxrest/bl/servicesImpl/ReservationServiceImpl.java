@@ -5,6 +5,7 @@ import be.ylorth.cibiouxrest.bl.models.Calendrier;
 import be.ylorth.cibiouxrest.bl.services.ReservationService;
 import be.ylorth.cibiouxrest.dal.models.FermetureEntity;
 import be.ylorth.cibiouxrest.dal.models.ReservationEntity;
+import be.ylorth.cibiouxrest.dal.models.ReservationStatus;
 import be.ylorth.cibiouxrest.dal.repositories.FermetureRepository;
 import be.ylorth.cibiouxrest.dal.repositories.ReservationRepository;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
@@ -23,10 +24,13 @@ public class ReservationServiceImpl implements ReservationService {
     
     private final FermetureRepository fermetureRepository;
     private final ReservationRepository reservationRepository;
+    
+    private final MailServiceImpl mailService;
 
-    public ReservationServiceImpl(FermetureRepository fermetureRepository, ReservationRepository reservationRepository) {
+    public ReservationServiceImpl(FermetureRepository fermetureRepository, ReservationRepository reservationRepository, MailServiceImpl mailService) {
         this.fermetureRepository = fermetureRepository;
         this.reservationRepository = reservationRepository;
+        this.mailService = mailService;
     }
 
     @Override
@@ -78,11 +82,31 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public void addReservation(ReservationForm form) {
+    public void addReservationVisitor(ReservationForm form) {
         if(form==null)
             throw new IllegalArgumentException("form can't be null");
-        
-        reservationRepository.save(ReservationForm.toEntity(form));
+        mailService.sendReservationMessage(form.email(), "reservation added", "ceci est un test");
+        ReservationEntity entity = ReservationForm.toEntity(form);
+        entity.setStatus(ReservationStatus.EN_ATTENTE);
+        reservationRepository.save(entity);
+    }
+
+    @Override
+    public void addReservationDirection(ReservationForm form) {
+        if(form==null)
+            throw new IllegalArgumentException("form can't be null");
+        mailService.sendReservationMessage(form.email(), "reservation confirmed", "ceci est un test");
+        ReservationEntity entity = ReservationForm.toEntity(form);
+        entity.setStatus(ReservationStatus.ACCEPTE);
+        reservationRepository.save(entity);
+    }
+    
+    @Override
+    public void changeReservationStatus(Long id, ReservationStatus status) {
+        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(() -> new NotFoundException("Reservation not found"));
+        entity.setStatus(status);
+        mailService.sendReservationMessage(entity.getEmail(), "reservation " + status.getStatus(), "ceci est un test");
+        reservationRepository.save(entity);
     }
 
     @Override

@@ -37,6 +37,8 @@ public class ReservationEntity {
     @Column(nullable = false)
     private int nbPersonne;
     private String commentaire;
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
     @ElementCollection
     @CollectionTable(name = "repas")
     @MapKeyColumn(name = "date")
