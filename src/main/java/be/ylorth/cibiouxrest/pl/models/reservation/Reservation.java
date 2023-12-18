@@ -1,6 +1,7 @@
 package be.ylorth.cibiouxrest.pl.models.reservation;
 
 import be.ylorth.cibiouxrest.dal.models.ReservationEntity;
+import be.ylorth.cibiouxrest.dal.models.ReservationStatus;
 
 import java.text.Normalizer;
 import java.time.LocalDate;
@@ -16,9 +17,10 @@ public record Reservation(
         String telephone,
         int nbPersonne,
         String commentaire,
-        HashMap<LocalDate, Boolean> repas
+        HashMap<LocalDate, Boolean> repas,
+        ReservationStatus status
 ) {
     public static Reservation fromEntity(ReservationEntity entity){
-        return new Reservation(entity.getId(), entity.getNom(), entity.getPrenom(), entity.getDateReservationEntree(), entity.getDateReservationSortie(), entity.getEmail(), entity.getTelephone(), entity.getNbPersonne(), entity.getCommentaire(), new HashMap<>(entity.getRepas()));
+        return new Reservation(entity.getId(), entity.getNom(), entity.getPrenom(), entity.getDateReservationEntree(), entity.getDateReservationSortie(), entity.getEmail(), entity.getTelephone(), entity.getNbPersonne(), entity.getCommentaire(), new HashMap<>(entity.getRepas()),entity.getStatus());
     }
 }

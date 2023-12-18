@@ -14,7 +14,7 @@ import java.util.Set;
 public interface ReservationService {
     Calendrier dateNonDispo();
     Optional<ReservationEntity> getReservation(Long id);
-    Set<ReservationEntity>  getReservationSemaine(LocalDate lundi, LocalDate Dimanche);
+    Set<ReservationEntity>  getReservationSemaine(LocalDate lundi, LocalDate dimanche);
     void addReservationVisitor(ReservationForm form);
     void addReservationDirection(ReservationForm form);
     void changeReservationStatus(Long id, ReservationStatus status);

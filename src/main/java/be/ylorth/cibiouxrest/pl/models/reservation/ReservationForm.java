@@ -11,6 +11,7 @@ public record ReservationForm(
         @NotBlank String prenom,
         @FutureOrPresent LocalDate dateReservationEntree,
         @Future LocalDate dateReservationSortie,
+        @Email
         String email,
         @NotBlank @Size(max = 15) String telephone,
         @Max(value = 3) @Min(value = 1) int nbPersonne,

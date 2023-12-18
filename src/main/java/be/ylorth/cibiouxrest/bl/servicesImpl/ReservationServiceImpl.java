@@ -41,6 +41,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .collect(Collectors.toSet());
         
         Set<LocalDate> reserve = reservationRepository.findAll().stream()
+                .filter(reservation -> reservation.getStatus() != ReservationStatus.ACCEPTE)
                 .filter(reservation -> reservation.getDateReservationEntree().isAfter(LocalDate.now().minusDays(1)) || reservation.getDateReservationSortie().isAfter(LocalDate.now()))
                 .flatMap(reservation -> {
                     LocalDate dateEntree = reservation.getDateReservationEntree();
@@ -81,6 +82,17 @@ public class ReservationServiceImpl implements ReservationService {
     public void addReservationVisitor(ReservationForm form) {
         if(form==null)
             throw new IllegalArgumentException("form can't be null");
+
+        LocalDate start = form.dateReservationEntree();
+        LocalDate end = form.dateReservationSortie();
+
+        boolean allDatesAvailable = start.datesUntil(end)
+                .allMatch(this::checkDateAvailable);
+
+        if(!allDatesAvailable) {
+            throw new IllegalArgumentException("One or more dates in the range are not available for reservation");
+        }
+        
         mailService.sendReservationMessage(form.email(), "reservation added", "ceci est un test");
         ReservationEntity entity = ReservationForm.toEntity(form);
         entity.setStatus(ReservationStatus.EN_ATTENTE);
@@ -91,6 +103,17 @@ public class ReservationServiceImpl implements ReservationService {
     public void addReservationDirection(ReservationForm form) {
         if(form==null)
             throw new IllegalArgumentException("form can't be null");
+
+        LocalDate start = form.dateReservationEntree();
+        LocalDate end = form.dateReservationSortie();
+
+        boolean allDatesAvailable = start.datesUntil(end)
+                .allMatch(this::checkDateAvailable);
+
+        if(!allDatesAvailable) {
+            throw new IllegalArgumentException("One or more dates in the range are not available for reservation");
+        }
+        
         mailService.sendReservationMessage(form.email(), "reservation confirmed", "ceci est un test");
         ReservationEntity entity = ReservationForm.toEntity(form);
         entity.setStatus(ReservationStatus.ACCEPTE);
@@ -109,6 +132,18 @@ public class ReservationServiceImpl implements ReservationService {
     public void updateReservation(Long id, ReservationForm form) {
         if(form==null)
             throw new IllegalArgumentException("form can't be null");
+
+        LocalDate start = form.dateReservationEntree();
+        LocalDate end = form.dateReservationSortie();
+
+        boolean allDatesAvailable = start.datesUntil(end)
+                .allMatch(this::checkDateAvailable);
+
+        if(!allDatesAvailable) {
+            throw new IllegalArgumentException("One or more dates in the range are not available for reservation");
+        }
+
+        mailService.sendReservationMessage(form.email(), "reservation modified", "ceci est un test");
         
         ReservationEntity entity = reservationRepository.findById(id).orElseThrow(()->new NotFoundException("Reservation not found"));
         
@@ -139,10 +174,10 @@ public class ReservationServiceImpl implements ReservationService {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             
-            if (form.nom() != null || !form.nom().isBlank())
+            if (form.nom() != null && !form.nom().isBlank())
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("nom")), "%" + form.nom().toLowerCase() + "%"));
             
-            if (form.prenom() != null || !form.prenom().isBlank())
+            if (form.prenom() != null && !form.prenom().isBlank())
                 predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("prenom")), "%" + form.prenom().toLowerCase() + "%"));
             
             if (form.dateReservationEntree() != null)
@@ -151,13 +186,23 @@ public class ReservationServiceImpl implements ReservationService {
             if (form.dateReservationSortie() != null)
                 predicates.add(criteriaBuilder.equal(root.get("dateReservationSortie"), form.dateReservationSortie()));
         
-            if (form.email() != null || !form.email().isBlank())
+            if (form.email() != null && !form.email().isBlank())
                 predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("email")), "%" + form.email().toLowerCase() + "%"));
         
-            if (form.telephone() != null || !form.telephone().isBlank())
+            if (form.telephone() != null && !form.telephone().isBlank())
                 predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("telephone")), "%" + form.telephone().toLowerCase() + "%"));
             
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
+
+    private boolean checkDateAvailable(LocalDate date) {
+        Calendrier calendrier = dateNonDispo();
+        boolean dateIsReserved = calendrier.datesReservees().contains(date);
+        boolean dateIsFermeture = calendrier.datesFermetures().contains(date);
+
+        return !dateIsReserved && !dateIsFermeture;
+    }
+    
+    
 }

@@ -32,8 +32,8 @@ public class ReservationController {
     }
     
     @GetMapping("/all")
-    public ResponseEntity<List<Reservation>> getAllWeek(@RequestParam LocalDate lundi, @RequestParam LocalDate diamanche){
-        return ResponseEntity.ok(reservationService.getReservationSemaine(lundi, diamanche).stream()
+    public ResponseEntity<List<Reservation>> getAllWeek(@RequestParam LocalDate lundi, @RequestParam LocalDate dimanche){
+        return ResponseEntity.ok(reservationService.getReservationSemaine(lundi, dimanche).stream()
                 .map(Reservation::fromEntity)
                 .toList());
     }
