@@ -56,7 +56,7 @@ public class ReservationController {
 
     @PostMapping("/createDirection")
     public void createDirection(@RequestBody @Valid ReservationForm form){
-        reservationService.addReservationVisitor(form);
+        reservationService.addReservationDirection(form);
     }
     
     @PutMapping("/{id:[0-9]+}/updateStatus")
