@@ -7,6 +7,7 @@ import be.ylorth.cibiouxrest.bl.services.ReservationService;
 import be.ylorth.cibiouxrest.dal.models.ReservationStatus;
 import be.ylorth.cibiouxrest.pl.models.reservation.Reservation;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
+import be.ylorth.cibiouxrest.pl.models.reservation.ReservationSearchForm;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,11 @@ public class ReservationController {
     @GetMapping("/{id:[0-9]+}")
     public ResponseEntity<Reservation> getOne(@PathVariable Long id){
         return ResponseEntity.ok(Reservation.fromEntity(reservationService.getReservation(id).orElseThrow(() -> new NotFoundException("Reservation not found"))));
+    }
+    
+    @PostMapping("/search")
+    public ResponseEntity<List<Reservation>> search(@RequestBody ReservationSearchForm form){
+        return ResponseEntity.ok(reservationService.search(form).stream().map(Reservation::fromEntity).toList());
     }
 
     @PostMapping("/createVisitor")

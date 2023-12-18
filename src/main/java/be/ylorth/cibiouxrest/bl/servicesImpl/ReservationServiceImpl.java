@@ -9,10 +9,11 @@ import be.ylorth.cibiouxrest.dal.models.ReservationStatus;
 import be.ylorth.cibiouxrest.dal.repositories.FermetureRepository;
 import be.ylorth.cibiouxrest.dal.repositories.ReservationRepository;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
+import be.ylorth.cibiouxrest.pl.models.reservation.ReservationSearchForm;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -24,7 +25,6 @@ public class ReservationServiceImpl implements ReservationService {
     
     private final FermetureRepository fermetureRepository;
     private final ReservationRepository reservationRepository;
-    
     private final MailServiceImpl mailService;
 
     public ReservationServiceImpl(FermetureRepository fermetureRepository, ReservationRepository reservationRepository, MailServiceImpl mailService) {
@@ -73,11 +73,7 @@ public class ReservationServiceImpl implements ReservationService {
                                 criteriaBuilder.lessThan(root.get("dateReservationSortie"), dimanche)
                         )
                 ));
-        
-        /*reservationRepository.findAll().stream()
-                .filter(reservationEntity -> (reservationEntity.getDateReservationEntree().isAfter(lundi)&&reservationEntity.getDateReservationEntree().isBefore(dimanche))||(reservationEntity.getDateReservationSortie().minusDays(1).isAfter(lundi)&&reservationEntity.getDateReservationSortie().minusDays(1).isBefore(dimanche)))
-                .collect(Collectors.toSet());
-*/
+
         return new HashSet<>(reservationRepository.findAll(specification));
     }
 
@@ -132,5 +128,36 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public void deleteReservation(Long id) {
         reservationRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ReservationEntity> search(ReservationSearchForm form) {
+        return reservationRepository.findAll(specificationBuilder(form));
+    }
+    
+    private Specification<ReservationEntity> specificationBuilder(ReservationSearchForm form){
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            if (form.nom() != null || !form.nom().isBlank())
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("nom")), form.nom().toLowerCase()));
+            
+            if (form.prenom() != null || !form.prenom().isBlank())
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("prenom")), form.prenom().toLowerCase()));
+            
+            if (form.dateReservationEntree() != null)
+                predicates.add(criteriaBuilder.equal(root.get("dateReservationEntree"), form.dateReservationEntree()));
+        
+            if (form.dateReservationSortie() != null)
+                predicates.add(criteriaBuilder.equal(root.get("dateReservationSortie"), form.dateReservationSortie()));
+        
+            if (form.email() != null || !form.email().isBlank())
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("email")), form.email().toLowerCase()));
+        
+            if (form.telephone() != null || !form.telephone().isBlank())
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("telephone")), form.telephone().toLowerCase()));
+            
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }

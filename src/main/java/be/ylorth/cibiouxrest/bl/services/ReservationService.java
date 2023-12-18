@@ -4,8 +4,10 @@ import be.ylorth.cibiouxrest.dal.models.ReservationEntity;
 import be.ylorth.cibiouxrest.bl.models.Calendrier;
 import be.ylorth.cibiouxrest.dal.models.ReservationStatus;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
+import be.ylorth.cibiouxrest.pl.models.reservation.ReservationSearchForm;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -18,5 +20,6 @@ public interface ReservationService {
     void changeReservationStatus(Long id, ReservationStatus status);
     void updateReservation(Long id, ReservationForm form);
     void deleteReservation(Long id);
+    List<ReservationEntity> search(ReservationSearchForm form);
     
 }
