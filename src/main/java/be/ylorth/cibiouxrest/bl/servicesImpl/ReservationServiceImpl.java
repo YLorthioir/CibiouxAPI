@@ -140,10 +140,10 @@ public class ReservationServiceImpl implements ReservationService {
             List<Predicate> predicates = new ArrayList<>();
             
             if (form.nom() != null || !form.nom().isBlank())
-                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("nom")), form.nom().toLowerCase()));
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("nom")), "%" + form.nom().toLowerCase() + "%"));
             
             if (form.prenom() != null || !form.prenom().isBlank())
-                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("prenom")), form.prenom().toLowerCase()));
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("prenom")), "%" + form.prenom().toLowerCase() + "%"));
             
             if (form.dateReservationEntree() != null)
                 predicates.add(criteriaBuilder.equal(root.get("dateReservationEntree"), form.dateReservationEntree()));
@@ -152,10 +152,10 @@ public class ReservationServiceImpl implements ReservationService {
                 predicates.add(criteriaBuilder.equal(root.get("dateReservationSortie"), form.dateReservationSortie()));
         
             if (form.email() != null || !form.email().isBlank())
-                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("email")), form.email().toLowerCase()));
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("email")), "%" + form.email().toLowerCase() + "%"));
         
             if (form.telephone() != null || !form.telephone().isBlank())
-                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("telephone")), form.telephone().toLowerCase()));
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("telephone")), "%" + form.telephone().toLowerCase() + "%"));
             
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
