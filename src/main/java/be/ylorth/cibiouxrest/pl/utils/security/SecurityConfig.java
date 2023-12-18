@@ -51,6 +51,7 @@ public class SecurityConfig {
                     //Reservation
                         .requestMatchers(HttpMethod.GET,"/reservation/dateNonDispo").permitAll()
                         .requestMatchers(HttpMethod.GET,"/reservation/all").authenticated()
+                        .requestMatchers(HttpMethod.POST,"/reservation/search").authenticated()
                         .requestMatchers(HttpMethod.GET,"/reservation/{id:[0-9]+}").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/reservation/{id:[0-9]+}").permitAll()
                         .requestMatchers(HttpMethod.DELETE,"/reservation/{id:[0-9]+}").authenticated()
