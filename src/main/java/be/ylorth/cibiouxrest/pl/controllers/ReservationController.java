@@ -55,6 +55,7 @@ public class ReservationController {
     }
 
     @PostMapping("/createDirection")
+    @ResponseStatus(HttpStatus.CREATED)
     public void createDirection(@RequestBody @Valid ReservationForm form){
         reservationService.addReservationDirection(form);
     }
