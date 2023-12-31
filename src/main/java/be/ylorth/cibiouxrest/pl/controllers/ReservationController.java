@@ -1,13 +1,13 @@
 package be.ylorth.cibiouxrest.pl.controllers;
 
 
-import be.ylorth.cibiouxrest.bl.exception.NotFoundException;
 import be.ylorth.cibiouxrest.bl.models.Calendrier;
 import be.ylorth.cibiouxrest.bl.services.ReservationService;
 import be.ylorth.cibiouxrest.dal.models.ReservationStatus;
 import be.ylorth.cibiouxrest.pl.models.reservation.Reservation;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationSearchForm;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,17 +30,20 @@ public class ReservationController {
     public ResponseEntity<Calendrier> getDateNonDispo(){
         return ResponseEntity.ok(reservationService.dateNonDispo());
     }
-    
-    @GetMapping("/all")
-    public ResponseEntity<List<Reservation>> getAllWeek(@RequestParam LocalDate lundi, @RequestParam LocalDate dimanche){
-        return ResponseEntity.ok(reservationService.getReservationSemaine(lundi, dimanche).stream()
-                .map(Reservation::fromEntity)
-                .toList());
-    }
 
     @GetMapping("/{id:[0-9]+}")
     public ResponseEntity<Reservation> getOne(@PathVariable Long id){
-        return ResponseEntity.ok(Reservation.fromEntity(reservationService.getReservation(id).orElseThrow(() -> new NotFoundException("Reservation not found"))));
+        return ResponseEntity.ok(Reservation.fromEntity(reservationService.getReservation(id).orElseThrow(() -> new EntityNotFoundException("Reservation not found"))));
+    }
+
+    @GetMapping("/getPendings")
+    public ResponseEntity<List<Reservation>> getPendings(){
+        return ResponseEntity.ok(reservationService.getPendings().stream().map(Reservation::fromEntity).toList());
+    }
+
+    @GetMapping("/getByDate/{date}")
+    public ResponseEntity<Reservation> getOneBydate(@PathVariable LocalDate date){
+        return ResponseEntity.ok(Reservation.fromEntity(reservationService.getOneByDate(date).orElseThrow(() -> new EntityNotFoundException("Reservation not found"))));
     }
     
     @PostMapping("/search")

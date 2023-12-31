@@ -1,6 +1,6 @@
 package be.ylorth.cibiouxrest.bl.servicesImpl;
 
-import be.ylorth.cibiouxrest.bl.exception.NotFoundException;
+import be.ylorth.cibiouxrest.bl.exception.DatePriseException;
 import be.ylorth.cibiouxrest.bl.models.Calendrier;
 import be.ylorth.cibiouxrest.bl.services.ReservationService;
 import be.ylorth.cibiouxrest.dal.models.FermetureEntity;
@@ -10,6 +10,7 @@ import be.ylorth.cibiouxrest.dal.repositories.FermetureRepository;
 import be.ylorth.cibiouxrest.dal.repositories.ReservationRepository;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationSearchForm;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .collect(Collectors.toSet());
         
         Set<LocalDate> reserve = reservationRepository.findAll().stream()
-                .filter(reservation -> reservation.getStatus() != ReservationStatus.ACCEPTE)
+                .filter(reservation -> reservation.getStatus() == ReservationStatus.ACCEPTE)
                 .filter(reservation -> reservation.getDateReservationEntree().isAfter(LocalDate.now().minusDays(1)) || reservation.getDateReservationSortie().isAfter(LocalDate.now()))
                 .flatMap(reservation -> {
                     LocalDate dateEntree = reservation.getDateReservationEntree();
@@ -62,20 +63,12 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public Set<ReservationEntity> getReservationSemaine(LocalDate lundi, LocalDate dimanche) {
+    public Optional<ReservationEntity> getOneByDate(LocalDate date) {
         Specification<ReservationEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                criteriaBuilder.or(
-                        criteriaBuilder.and(
-                                criteriaBuilder.greaterThanOrEqualTo(root.get("dateReservationEntree"), lundi),
-                                criteriaBuilder.lessThanOrEqualTo(root.get("dateReservationEntree"), dimanche)
-                        ),
-                        criteriaBuilder.and(
-                                criteriaBuilder.greaterThanOrEqualTo(root.get("dateReservationSortie"), lundi),
-                                criteriaBuilder.lessThan(root.get("dateReservationSortie"), dimanche)
-                        )
-                ));
+                criteriaBuilder.lessThanOrEqualTo(root.get("dateReservationEntree"),date),
+                criteriaBuilder.greaterThanOrEqualTo(root.get("dateReservationSortie"),date));
 
-        return new HashSet<>(reservationRepository.findAll(specification));
+        return reservationRepository.findOne(specification);
     }
 
     @Override
@@ -90,7 +83,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .allMatch(this::checkDateAvailable);
 
         if(!allDatesAvailable) {
-            throw new IllegalArgumentException("One or more dates in the range are not available for reservation");
+            throw new DatePriseException("One or more dates in the range are not available for reservation");
         }
         
         mailService.sendReservationMessage(form.email(), "reservation added", "ceci est un test");
@@ -122,7 +115,7 @@ public class ReservationServiceImpl implements ReservationService {
     
     @Override
     public void changeReservationStatus(Long id, ReservationStatus status) {
-        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(() -> new NotFoundException("Reservation not found"));
+        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
         entity.setStatus(status);
         mailService.sendReservationMessage(entity.getEmail(), "reservation " + status.getStatus(), "ceci est un test");
         reservationRepository.save(entity);
@@ -145,7 +138,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         mailService.sendReservationMessage(form.email(), "reservation modified", "ceci est un test");
         
-        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(()->new NotFoundException("Reservation not found"));
+        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Reservation not found"));
         
         entity.setNom(form.nom());
         entity.setPrenom(form.prenom());
@@ -168,6 +161,12 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<ReservationEntity> search(ReservationSearchForm form) {
         return reservationRepository.findAll(specificationBuilder(form));
+    }
+    
+    @Override
+    public List<ReservationEntity> getPendings() {
+        Specification<ReservationEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), ReservationStatus.EN_ATTENTE);
+        return reservationRepository.findAll(specification);
     }
     
     private Specification<ReservationEntity> specificationBuilder(ReservationSearchForm form){

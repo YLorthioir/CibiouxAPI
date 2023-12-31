@@ -37,7 +37,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
 
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> corsConfiguration())
+            .cors(cors -> cors.configurationSource(corsConfig()))
+                
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .sessionManagement((session) -> session
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -51,7 +52,7 @@ public class SecurityConfig {
                             
                     //Reservation
                         .requestMatchers(HttpMethod.GET,"/reservation/dateNonDispo").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/reservation/all").authenticated()
+                        .requestMatchers(HttpMethod.GET,"/reservation/getPendings").authenticated()
                         .requestMatchers(HttpMethod.POST,"/reservation/search").authenticated()
                         .requestMatchers(HttpMethod.GET,"/reservation/{id:[0-9]+}").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/reservation/{id:[0-9]+}").permitAll()
@@ -80,7 +81,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfiguration() {
+    public CorsConfigurationSource corsConfig() {
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();

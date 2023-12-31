@@ -1,13 +1,13 @@
 package be.ylorth.cibiouxrest.bl.servicesImpl;
 
 
-import be.ylorth.cibiouxrest.bl.exception.NotFoundException;
 import be.ylorth.cibiouxrest.bl.services.AuthService;
 import be.ylorth.cibiouxrest.dal.models.UserEntity;
 import be.ylorth.cibiouxrest.dal.repositories.UserRepository;
 import be.ylorth.cibiouxrest.pl.models.auth.AuthResponse;
 import be.ylorth.cibiouxrest.pl.models.auth.LoginForm;
 import be.ylorth.cibiouxrest.pl.utils.security.JwtProvider;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         UserEntity user = userRepository.findOne(spec)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         String token = jwtProvider.generateToken(user.getUsername(), user.getUserRole() );
 

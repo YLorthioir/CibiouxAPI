@@ -1,6 +1,5 @@
 package be.ylorth.cibiouxrest.bl;
 
-import be.ylorth.cibiouxrest.bl.exception.NotFoundException;
 import be.ylorth.cibiouxrest.bl.servicesImpl.AuthServiceImpl;
 import be.ylorth.cibiouxrest.dal.models.UserEntity;
 import be.ylorth.cibiouxrest.dal.models.UserRole;
@@ -8,6 +7,7 @@ import be.ylorth.cibiouxrest.dal.repositories.UserRepository;
 import be.ylorth.cibiouxrest.pl.models.auth.AuthResponse;
 import be.ylorth.cibiouxrest.pl.models.auth.LoginForm;
 import be.ylorth.cibiouxrest.pl.utils.security.JwtProvider;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -74,7 +74,7 @@ public class AuthServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(form))
-                .isInstanceOf(NotFoundException.class)
+                .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("User not found");
 
         verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
