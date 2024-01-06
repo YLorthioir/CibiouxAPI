@@ -69,8 +69,8 @@ public class ReservationController {
     }
     
     @PutMapping("/{id:[0-9]+}")
-    public void update(@RequestBody @Valid ReservationForm form, @PathVariable Long id){
-        reservationService.updateReservation(id, form);
+    public void update(@RequestBody @Valid ReservationForm form, @PathVariable Long id, @RequestParam String status){
+        reservationService.updateReservation(id, form, ReservationStatus.valueOf(status));
     }
 
     @DeleteMapping("/{id:[0-9]+}")

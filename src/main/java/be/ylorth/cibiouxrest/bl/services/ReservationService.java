@@ -17,7 +17,7 @@ public interface ReservationService {
     void addReservationVisitor(ReservationForm form);
     void addReservationDirection(ReservationForm form);
     void changeReservationStatus(Long id, ReservationStatus status);
-    void updateReservation(Long id, ReservationForm form);
+    void updateReservation(Long id, ReservationForm form, ReservationStatus status);
     void deleteReservation(Long id);
     List<ReservationEntity> search(ReservationSearchForm form);
     List<ReservationEntity> getPendings();
