@@ -22,11 +22,6 @@ public class FermetureController {
         this.fermetureService = fermetureService;
     }
     
-    @GetMapping("/all")
-    public ResponseEntity<Page<Fermeture>> getAll(@PageableDefault Pageable pageable){
-        return ResponseEntity.ok(fermetureService.getAll(pageable).map(Fermeture::fromEntity));
-    }
-    
     @PostMapping("/insert")
     public void create(@RequestBody @NotEmpty Set<LocalDate> dates){
         fermetureService.create(dates);

@@ -14,8 +14,9 @@ public record ReservationForm(
         @Email
         String email,
         @NotBlank @Size(max = 15) String telephone,
-        @Max(value = 3) @Min(value = 1) int nbPersonne,
+        @Max(value = 4) @Min(value = 1) int nbPersonne,
         @Size(max = 250) String commentaire,
+        @Size(min = 1)
         HashMap<LocalDate, Boolean> repas
         
 ) {

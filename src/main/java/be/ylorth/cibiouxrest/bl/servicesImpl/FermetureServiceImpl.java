@@ -1,8 +1,11 @@
 package be.ylorth.cibiouxrest.bl.servicesImpl;
 
+import be.ylorth.cibiouxrest.bl.models.Calendrier;
 import be.ylorth.cibiouxrest.bl.services.FermetureService;
+import be.ylorth.cibiouxrest.bl.services.ReservationService;
 import be.ylorth.cibiouxrest.dal.models.FermetureEntity;
 import be.ylorth.cibiouxrest.dal.repositories.FermetureRepository;
+import org.hibernate.cache.spi.support.NaturalIdReadOnlyAccess;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,22 +20,17 @@ import java.util.Set;
 public class FermetureServiceImpl implements FermetureService{
 
     private final FermetureRepository fermetureRepository;
+    private final ReservationService reservationService;
 
-    public FermetureServiceImpl(FermetureRepository fermetureRepository) {
+    public FermetureServiceImpl(FermetureRepository fermetureRepository, ReservationService reservationService) {
         this.fermetureRepository = fermetureRepository;
-    }
-
-    @Override
-    public Page<FermetureEntity> getAll(Pageable pageable) {
-        Sort sort = Sort.by("dateDeFermeture").ascending();
-        Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        return fermetureRepository.findAll(page);
+        this.reservationService = reservationService;
     }
 
     @Override
     public void create(Set<LocalDate> dates) {
         dates.stream()
-                .filter(this::doesNotExist)
+                .filter(this::dateFermetureValide)
                 .map(this::dateToFermetureEntity)
                 .forEach(fermetureRepository::save);
     }
@@ -42,15 +40,16 @@ public class FermetureServiceImpl implements FermetureService{
         fermetureRepository.findOne(byDate(date))
                 .ifPresent(fermetureRepository::delete);
     }
+    
+    private boolean dateFermetureValide(LocalDate date){
+        Calendrier datesNonDispo = reservationService.dateNonDispo();
+        return !datesNonDispo.datesReservees().contains(date) && !datesNonDispo.datesFermetures().contains(date);
+    }
 
     private FermetureEntity dateToFermetureEntity(LocalDate date) {
         FermetureEntity entity = new FermetureEntity();
         entity.setDateDeFermeture(date);
         return entity;
-    }
-
-    private boolean doesNotExist(LocalDate date) {
-        return !fermetureRepository.exists(byDate(date));
     }
 
     private Specification<FermetureEntity> byDate(LocalDate date){

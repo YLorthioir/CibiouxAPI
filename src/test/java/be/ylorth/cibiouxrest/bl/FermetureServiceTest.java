@@ -4,6 +4,7 @@ package be.ylorth.cibiouxrest.bl;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import be.ylorth.cibiouxrest.bl.services.ReservationService;
 import be.ylorth.cibiouxrest.bl.servicesImpl.FermetureServiceImpl;
 import be.ylorth.cibiouxrest.dal.models.FermetureEntity;
 import be.ylorth.cibiouxrest.dal.repositories.FermetureRepository;
@@ -17,28 +18,21 @@ import java.time.LocalDate;
 import java.util.*;
 
 class FermetureServiceTest {
-
+    
     FermetureServiceImpl fermetureService;
 
     @Mock
     FermetureRepository fermetureRepository;
 
+    @Mock
+    ReservationService reservationService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
-        fermetureService = new FermetureServiceImpl(fermetureRepository);
+        fermetureService = new FermetureServiceImpl(fermetureRepository, reservationService);
     }
-
-    @Test
-    void testGetAll() {
-        Pageable pageable = PageRequest.of(0, 5);
-        Page<FermetureEntity> expectedPage = new PageImpl<>(List.of(new FermetureEntity()));
-        when(fermetureRepository.findAll(any(Pageable.class))).thenReturn(expectedPage);
-
-        Page<FermetureEntity> actualPage = fermetureService.getAll(pageable);
-
-        assertEquals(expectedPage, actualPage);
-    }
+    
     
 }
 

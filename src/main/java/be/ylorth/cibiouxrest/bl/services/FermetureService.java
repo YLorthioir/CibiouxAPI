@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.util.Set;
 
 public interface FermetureService {
-    Page<FermetureEntity> getAll(Pageable pageable);
     void create(Set<LocalDate> dates);
     void delete(LocalDate date);
     

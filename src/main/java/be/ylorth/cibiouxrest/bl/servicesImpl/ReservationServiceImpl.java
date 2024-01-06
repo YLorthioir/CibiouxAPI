@@ -10,6 +10,7 @@ import be.ylorth.cibiouxrest.dal.repositories.FermetureRepository;
 import be.ylorth.cibiouxrest.dal.repositories.ReservationRepository;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationSearchForm;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -83,11 +84,16 @@ public class ReservationServiceImpl implements ReservationService {
                 .allMatch(this::checkDateAvailable);
 
         if(!allDatesAvailable) {
-            throw new DatePriseException("One or more dates in the range are not available for reservation");
+            throw new DatePriseException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
         }
-        
-        mailService.sendReservationMessage(form.email(), "reservation added", "ceci est un test");
+        System.out.println(form.repas());
         ReservationEntity entity = ReservationForm.toEntity(form);
+
+        try {
+            mailService.sendReservationMessage(entity);
+        }catch (MessagingException ex) {
+            System.out.println("Erreur envoi mail: "+ex);
+        }
         entity.setStatus(ReservationStatus.EN_ATTENTE);
         reservationRepository.save(entity);
     }
@@ -104,41 +110,56 @@ public class ReservationServiceImpl implements ReservationService {
                 .allMatch(this::checkDateAvailable);
 
         if(!allDatesAvailable) {
-            throw new IllegalArgumentException("One or more dates in the range are not available for reservation");
+            throw new IllegalArgumentException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
         }
         
-        mailService.sendReservationMessage(form.email(), "reservation confirmed", "ceci est un test");
         ReservationEntity entity = ReservationForm.toEntity(form);
         entity.setStatus(ReservationStatus.ACCEPTE);
+
+        if(entity.getEmail()!=null && !entity.getEmail().isEmpty()) {
+            try {
+                mailService.sendAcceptedMessage(entity);
+            } catch (MessagingException ex) {
+                System.out.println("Erreur envoi mail: " + ex);
+            }
+        }
+        
         reservationRepository.save(entity);
     }
     
     @Override
     public void changeReservationStatus(Long id, ReservationStatus status) {
-        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
+        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Réservation non trouvée"));
+        
+        boolean allDatesAvailable = entity.getDateReservationEntree().datesUntil(entity.getDateReservationSortie())
+                .allMatch(this::checkDateAvailable);
+
+        if(!allDatesAvailable) {
+            throw new IllegalArgumentException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
+        }
+
         entity.setStatus(status);
-        mailService.sendReservationMessage(entity.getEmail(), "reservation " + status.getStatus(), "ceci est un test");
+
+        if(entity.getEmail()!=null && !entity.getEmail().isEmpty()) {
+            try {
+                if (entity.getStatus() == ReservationStatus.ACCEPTE)
+                    mailService.sendAcceptedMessage(entity);
+                else if (entity.getStatus() == ReservationStatus.REFUSE)
+                    mailService.sendDeniedMessage(entity);
+            } catch (MessagingException ex) {
+                System.out.println("Erreur envoi mail: " + ex);
+            }
+        }
+        
         reservationRepository.save(entity);
     }
 
     @Override
-    public void updateReservation(Long id, ReservationForm form) {
+    public void updateReservation(Long id, ReservationForm form, ReservationStatus status) {
         if(form==null)
             throw new IllegalArgumentException("form can't be null");
-
-        LocalDate start = form.dateReservationEntree();
-        LocalDate end = form.dateReservationSortie();
-
-        boolean allDatesAvailable = start.datesUntil(end)
-                .allMatch(this::checkDateAvailable);
-
-        if(!allDatesAvailable) {
-            throw new IllegalArgumentException("One or more dates in the range are not available for reservation");
-        }
-
-        mailService.sendReservationMessage(form.email(), "reservation modified", "ceci est un test");
         
-        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Reservation not found"));
+        ReservationEntity entity = reservationRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Réservation non trouvée"));
         
         entity.setNom(form.nom());
         entity.setPrenom(form.prenom());
@@ -149,7 +170,15 @@ public class ReservationServiceImpl implements ReservationService {
         entity.setTelephone(form.telephone());
         entity.setNbPersonne(form.nbPersonne());
         entity.setRepas(new HashMap<>(form.repas()));
-        
+        entity.setStatus(status);
+
+        boolean allDatesAvailable = entity.getDateReservationEntree().datesUntil(entity.getDateReservationSortie())
+                .allMatch(this::checkDateAvailable);
+
+        if(!allDatesAvailable) {
+            throw new IllegalArgumentException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
+        }
+
         reservationRepository.save(entity);
     }
 

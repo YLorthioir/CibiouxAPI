@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="stylesheet" th:href="@{../static/assets/styles/style.css}">
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            background-color: #F3E9D2;
+            padding: 40px;
+        }
+        .container {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .content {
+            flex: 1;
+        }
+
+        #mobile{
+            display: none;
+        }
+
+        @media screen and (max-width: 768px) {
+
+            #mobile{
+                display: block;
+            }
+
+            #mobile .p-menubar {
+                display: flex;
+                justify-content: space-between;
+            }
+            #mobile .p-menubar .p-menuitem {
+                flex: 1;
+            }
+        }
+        
+        footer{
+            text-align: center;
+            margin: 50px auto 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Réservation <span th:text="${statut}"></span></h2>
+    
+    <div>
+        <p>Votre réservation du <span th:text="${#temporals.format(reservation.dateReservationEntree, 'dd-MM-yyyy')}"></span> au <span th:text="${#temporals.format(reservation.dateReservationSortie, 'dd-MM-yyyy')}"></span></p>
+        <p>Détails de la réservation:</p>
+        <ul>
+            <li th:text="${'Nom: '+ reservation.nom}"></li>
+            <li th:text="${'Prénom: '+ reservation.prenom}"></li>
+            <li th:text="${'Téléphone: '+ reservation.telephone}"></li>
+            <li th:text="${'Date d\'arrivée: '+ #temporals.format(reservation.dateReservationEntree, 'dd-MM-yyyy')}"></li>
+            <li th:text="${'Date de depart: '+ #temporals.format(dateSortie, 'dd-MM-yyyy')}"></li>
+            <li th:text="${'Nombre de personnes: '+ reservation.nbPersonne}"></li>
+            <li>Repas:
+                <ul th:each="item : ${repas}">
+                    <li th:text="${#temporals.format(item.key, 'dd-MM-yyyy') + ': ' + (item.value ? 'Oui' : 'Non')}"></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    
+    <div th:if="${statut == 'acceptée'}">
+        <p th:text="${'Vous pouvez arriver le '+ #temporals.format(reservation.dateReservationEntree, 'dd-MM-yyyy') + ' à partir de 17h'}"></p><br>
+        <p> A bientôt</p>
+    </div>
+
+    <footer>
+        <p><a href="mailto:contact@chateaudecibioux.fr">contact&#64;chateaudecibioux.fr</a></p>  <p>&copy; 2024 Château de Cibioux</p>
+    </footer>
+
+</body>
+
+</html>
