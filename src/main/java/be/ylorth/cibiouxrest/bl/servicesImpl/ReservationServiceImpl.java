@@ -155,12 +155,18 @@ public class ReservationServiceImpl implements ReservationService {
         entity.setPrenom(form.prenom());
         entity.setCommentaire(form.commentaire());
         entity.setEmail(form.email());
-        entity.setDateReservationPremierJour(form.dateReservationEntree());
-        entity.setDateReservationDernierJour(form.dateReservationSortie());
+        if(!(entity.getDateReservationPremierJour().equals(form.dateReservationEntree()) && entity.getDateReservationDernierJour().equals(form.dateReservationSortie().minusDays(1)))){
+            form.dateReservationEntree().datesUntil(form.dateReservationSortie())
+                    .filter(date-> !(date.isAfter(entity.getDateReservationPremierJour().minusDays(1)) && date.isBefore(entity.getDateReservationDernierJour().plusDays(1))))
+                    .forEach(this::ensureDateIsAvailable);
+            
+            entity.setDateReservationPremierJour(form.dateReservationEntree());
+            entity.setDateReservationDernierJour(form.dateReservationSortie().minusDays(1));
+        };
         entity.setTelephone(form.telephone());
         entity.setNbPersonne(form.nbPersonne());
         entity.setRepas(new HashMap<>(form.repas()));
-        entity.getDateReservationPremierJour().datesUntil(entity.getDateReservationDernierJour().plusDays(1)).forEach(this::ensureDateIsAvailable);
+
         entity.setStatus(status);
 
         reservationRepository.save(entity);
@@ -217,6 +223,5 @@ public class ReservationServiceImpl implements ReservationService {
             throw new DatePriseException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
 
     }
-    
     
 }

@@ -1,11 +1,13 @@
 package be.ylorth.cibiouxrest.pl.models.reservation;
 
 import be.ylorth.cibiouxrest.dal.models.ReservationEntity;
+import be.ylorth.cibiouxrest.pl.validators.ValidDateOrder;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.util.HashMap;
 
+@ValidDateOrder
 public record ReservationForm(
         @NotBlank String nom,
         @NotBlank String prenom,

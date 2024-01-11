@@ -71,7 +71,7 @@
     </div>
     
     <div th:if="${statut == 'acceptée'}">
-        <p th:text="${'Vous pouvez arriver le '+ #temporals.format(reservation.dateReservationEntree, 'dd-MM-yyyy') + ' à partir de 17h'}"></p><br>
+        <p th:text="${'Vous pouvez arriver le '+ #temporals.format(reservation.dateReservationPremierJour, 'dd-MM-yyyy') + ' à partir de 17h'}"></p><br>
         <p> A bientôt</p>
     </div>
 
