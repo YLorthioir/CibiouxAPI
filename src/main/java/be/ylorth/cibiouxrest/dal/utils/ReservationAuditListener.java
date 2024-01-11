@@ -65,11 +65,11 @@ public class ReservationAuditListener{
         if (!Objects.equals(initialState.getPrenom(), newState.getPrenom())) {
             modifiedFields.add("prenom");
         }
-        if (!Objects.equals(initialState.getDateReservationPremierJour(), newState.getDateReservationPremierJour())) {
-            modifiedFields.add("dateReservationEntree");
+        if (!Objects.equals(initialState.getPremierJour(), newState.getPremierJour())) {
+            modifiedFields.add("premierJour");
         }
-        if (!Objects.equals(initialState.getDateReservationDernierJour(), newState.getDateReservationDernierJour())) {
-            modifiedFields.add("dateReservationSortie");
+        if (!Objects.equals(initialState.getDernierJour(), newState.getDernierJour())) {
+            modifiedFields.add("dernierJour");
         }
         if (!Objects.equals(initialState.getEmail(), newState.getEmail())) {
             modifiedFields.add("email");

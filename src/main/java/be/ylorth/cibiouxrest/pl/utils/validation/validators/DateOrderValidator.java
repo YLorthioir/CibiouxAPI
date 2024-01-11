@@ -1,6 +1,7 @@
-package be.ylorth.cibiouxrest.pl.validators;
+package be.ylorth.cibiouxrest.pl.utils.validation.validators;
 
 import be.ylorth.cibiouxrest.pl.models.reservation.ReservationForm;
+import be.ylorth.cibiouxrest.pl.utils.validation.constraints.ValidDateOrder;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -12,6 +13,6 @@ public class DateOrderValidator implements ConstraintValidator<ValidDateOrder, R
 
     @Override
     public boolean isValid(final ReservationForm form, final ConstraintValidatorContext context) {
-        return form.dateReservationSortie().isAfter(form.dateReservationEntree());
+        return form.dernierJour().isAfter(form.premierJour().minusDays(1));
     }
 }

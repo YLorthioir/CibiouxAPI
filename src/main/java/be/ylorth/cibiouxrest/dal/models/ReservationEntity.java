@@ -27,10 +27,10 @@ public class ReservationEntity {
     private String prenom;
     @Column(nullable = false)
     @Getter
-    private LocalDate dateReservationPremierJour;
+    private LocalDate premierJour;
     @Column(nullable = false)
     @Getter
-    private LocalDate dateReservationDernierJour;
+    private LocalDate dernierJour;
     private String email;
     @Column(nullable = false)
     private String telephone;

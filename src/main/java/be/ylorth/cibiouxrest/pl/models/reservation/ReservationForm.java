@@ -1,18 +1,20 @@
 package be.ylorth.cibiouxrest.pl.models.reservation;
 
 import be.ylorth.cibiouxrest.dal.models.ReservationEntity;
-import be.ylorth.cibiouxrest.pl.validators.ValidDateOrder;
+import be.ylorth.cibiouxrest.pl.utils.validation.constraints.ValidDateOrder;
+import be.ylorth.cibiouxrest.pl.utils.validation.constraints.ValidMealMap;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.util.HashMap;
 
 @ValidDateOrder
+@ValidMealMap
 public record ReservationForm(
         @NotBlank String nom,
         @NotBlank String prenom,
-        @FutureOrPresent LocalDate dateReservationEntree,
-        @Future LocalDate dateReservationSortie,
+        @FutureOrPresent LocalDate premierJour,
+        @FutureOrPresent LocalDate dernierJour,
         @Email
         String email,
         @NotBlank @Size(max = 15) String telephone,
@@ -30,8 +32,8 @@ public record ReservationForm(
         entity.setNbPersonne(form.nbPersonne());
         entity.setTelephone(form.telephone());
         entity.setCommentaire(form.commentaire());
-        entity.setDateReservationDernierJour(form.dateReservationSortie().minusDays(1));
-        entity.setDateReservationPremierJour(form.dateReservationEntree());
+        entity.setDernierJour(form.dernierJour());
+        entity.setPremierJour(form.premierJour());
         entity.setRepas(form.repas());
         return entity;
     }

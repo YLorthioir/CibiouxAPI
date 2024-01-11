@@ -44,8 +44,8 @@ public class ReservationServiceTest {
         
         ReservationEntity acceptedReservation = new ReservationEntity();
         acceptedReservation.setStatus(ReservationStatus.ACCEPTE);
-        acceptedReservation.setDateReservationPremierJour(LocalDate.now().plusWeeks(1));
-        acceptedReservation.setDateReservationDernierJour(LocalDate.now().plusWeeks(1).plusDays(1));
+        acceptedReservation.setPremierJour(LocalDate.now().plusWeeks(1));
+        acceptedReservation.setDernierJour(LocalDate.now().plusWeeks(1).plusDays(1));
         
         List<FermetureEntity> fermetures = List.of(fermetureEntity);
         List<ReservationEntity> reservations = List.of(acceptedReservation);
@@ -58,8 +58,8 @@ public class ReservationServiceTest {
         
         // Assert
         LocalDate fermetureDate = fermetureEntity.getDateDeFermeture();
-        Set<LocalDate> reservationDates = Stream.iterate(acceptedReservation.getDateReservationPremierJour(), date -> date.plusDays(1))
-                .limit(ChronoUnit.DAYS.between(acceptedReservation.getDateReservationPremierJour(), acceptedReservation.getDateReservationDernierJour()))
+        Set<LocalDate> reservationDates = Stream.iterate(acceptedReservation.getPremierJour(), date -> date.plusDays(1))
+                .limit(ChronoUnit.DAYS.between(acceptedReservation.getPremierJour(), acceptedReservation.getDernierJour()))
                 .collect(Collectors.toSet());
 
         System.out.println("fermetureDate: " + fermetureDate); 
@@ -107,8 +107,8 @@ public class ReservationServiceTest {
         // Arrange
         LocalDate testDate = LocalDate.now();
         ReservationEntity reservationEntity = new ReservationEntity();
-        reservationEntity.setDateReservationPremierJour(testDate.minusDays(1));
-        reservationEntity.setDateReservationDernierJour(testDate.plusDays(1));
+        reservationEntity.setPremierJour(testDate.minusDays(1));
+        reservationEntity.setDernierJour(testDate.plusDays(1));
         when(reservationRepository.findOne(any(Specification.class))).thenReturn(Optional.of(reservationEntity));
 
         // Act
@@ -116,8 +116,8 @@ public class ReservationServiceTest {
 
         // Assert
         assertTrue(optionalReservationEntity.isPresent());
-        assertTrue(testDate.isAfter(optionalReservationEntity.get().getDateReservationPremierJour())
-                && testDate.isBefore(optionalReservationEntity.get().getDateReservationDernierJour()));
+        assertTrue(testDate.isAfter(optionalReservationEntity.get().getPremierJour())
+                && testDate.isBefore(optionalReservationEntity.get().getDernierJour()));
     }
 
     @Test

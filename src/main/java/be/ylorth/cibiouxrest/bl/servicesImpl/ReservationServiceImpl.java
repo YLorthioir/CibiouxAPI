@@ -44,10 +44,10 @@ public class ReservationServiceImpl implements ReservationService {
         
         Set<LocalDate> reserve = reservationRepository.findAll().stream()
                 .filter(reservation -> reservation.getStatus() == ReservationStatus.ACCEPTE)
-                .filter(reservation -> reservation.getDateReservationDernierJour().isAfter(LocalDate.now()))
+                .filter(reservation -> reservation.getDernierJour().isAfter(LocalDate.now()))
                 .flatMap(reservation -> {
-                    LocalDate dateEntree = reservation.getDateReservationPremierJour();
-                    LocalDate dateSortie = reservation.getDateReservationDernierJour().plusDays(1);
+                    LocalDate dateEntree = reservation.getPremierJour();
+                    LocalDate dateSortie = reservation.getDernierJour().plusDays(1);
                     return Stream.iterate(dateEntree, date -> date.plusDays(1))
                             .limit(ChronoUnit.DAYS.between(dateEntree, dateSortie));
                 })
@@ -69,8 +69,8 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("La date ne peut être null");
         
         Specification<ReservationEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                criteriaBuilder.lessThanOrEqualTo(root.get("dateReservationPremierJour"),date),
-                criteriaBuilder.greaterThanOrEqualTo(root.get("dateReservationDernierJour"),date));
+                criteriaBuilder.lessThanOrEqualTo(root.get("premierJour"),date),
+                criteriaBuilder.greaterThanOrEqualTo(root.get("dernierJour"),date));
 
         return reservationRepository.findOne(specification);
     }
@@ -80,8 +80,8 @@ public class ReservationServiceImpl implements ReservationService {
         if(form==null)
             throw new IllegalArgumentException("form can't be null");
 
-        LocalDate start = form.dateReservationEntree();
-        LocalDate end = form.dateReservationSortie();
+        LocalDate start = form.premierJour();
+        LocalDate end = form.dernierJour();
 
         start.datesUntil(end).forEach(this::ensureDateIsAvailable);
 
@@ -102,8 +102,8 @@ public class ReservationServiceImpl implements ReservationService {
         if(form==null)
             throw new IllegalArgumentException("form can't be null");
 
-        LocalDate start = form.dateReservationEntree();
-        LocalDate end = form.dateReservationSortie();
+        LocalDate start = form.premierJour();
+        LocalDate end = form.dernierJour();
 
         start.datesUntil(end).forEach(this::ensureDateIsAvailable);
         
@@ -126,7 +126,7 @@ public class ReservationServiceImpl implements ReservationService {
         ReservationEntity entity = reservationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Réservation non trouvée"));
 
         if (status == ReservationStatus.ACCEPTE)
-            entity.getDateReservationPremierJour().datesUntil(entity.getDateReservationDernierJour().plusDays(1)).forEach(this::ensureDateIsAvailable);
+            entity.getPremierJour().datesUntil(entity.getDernierJour().plusDays(1)).forEach(this::ensureDateIsAvailable);
 
         entity.setStatus(status);
 
@@ -155,13 +155,13 @@ public class ReservationServiceImpl implements ReservationService {
         entity.setPrenom(form.prenom());
         entity.setCommentaire(form.commentaire());
         entity.setEmail(form.email());
-        if(!(entity.getDateReservationPremierJour().equals(form.dateReservationEntree()) && entity.getDateReservationDernierJour().equals(form.dateReservationSortie().minusDays(1)))){
-            form.dateReservationEntree().datesUntil(form.dateReservationSortie())
-                    .filter(date-> !(date.isAfter(entity.getDateReservationPremierJour().minusDays(1)) && date.isBefore(entity.getDateReservationDernierJour().plusDays(1))))
+        if(!(entity.getPremierJour().equals(form.premierJour()) && entity.getDernierJour().equals(form.dernierJour().minusDays(1)))){
+            form.premierJour().datesUntil(form.dernierJour())
+                    .filter(date-> !(date.isAfter(entity.getPremierJour().minusDays(1)) && date.isBefore(entity.getDernierJour().plusDays(1))))
                     .forEach(this::ensureDateIsAvailable);
             
-            entity.setDateReservationPremierJour(form.dateReservationEntree());
-            entity.setDateReservationDernierJour(form.dateReservationSortie().minusDays(1));
+            entity.setPremierJour(form.premierJour());
+            entity.setDernierJour(form.dernierJour());
         };
         entity.setTelephone(form.telephone());
         entity.setNbPersonne(form.nbPersonne());
@@ -198,11 +198,11 @@ public class ReservationServiceImpl implements ReservationService {
             if (form.prenom() != null && !form.prenom().isBlank())
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("prenom")), "%" + form.prenom().toLowerCase() + "%"));
             
-            if (form.dateReservationEntree() != null)
-                predicates.add(criteriaBuilder.equal(root.get("dateReservationPremierJour"), form.dateReservationEntree()));
+            if (form.premierJour() != null)
+                predicates.add(criteriaBuilder.equal(root.get("premierJour"), form.premierJour()));
         
-            if (form.dateReservationSortie() != null)
-                predicates.add(criteriaBuilder.equal(root.get("dateReservationDernierJour"), form.dateReservationSortie()));
+            if (form.dernierJour() != null)
+                predicates.add(criteriaBuilder.equal(root.get("dernierJour"), form.dernierJour()));
         
             if (form.email() != null && !form.email().isBlank())
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + form.email().toLowerCase() + "%"));

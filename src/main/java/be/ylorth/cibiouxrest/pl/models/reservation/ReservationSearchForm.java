@@ -5,8 +5,8 @@ import java.time.LocalDate;
 public record ReservationSearchForm(
         String nom,
         String prenom,
-        LocalDate dateReservationEntree,
-        LocalDate dateReservationSortie,
+        LocalDate premierJour,
+        LocalDate dernierJour,
         String email,
         String telephone
 ) {

@@ -53,13 +53,18 @@
     <h2>Réservation <span th:text="${statut}"></span></h2>
     
     <div>
-        <p>Votre réservation du <span th:text="${#temporals.format(reservation.dateReservationPremierJour, 'dd-MM-yyyy')}"></span> au <span th:text="${#temporals.format(reservation.dateReservationDernierJour, 'dd-MM-yyyy')}"></span></p>
-        <p>Détails de la réservation:</p>
+        <p th:if="${reservation.premierJour.equals(reservation.dernierJour)}">
+            Votre réservation pour le <span th:text="${#temporals.format(reservation.premierJour, 'dd-MM-yyyy')}"></span>
+        </p>
+
+        <p th:if="${!(reservation.premierJour.equals(reservation.dernierJour))}">
+            Votre réservation du <span th:text="${#temporals.format(reservation.premierJour, 'dd-MM-yyyy')}"></span> au <span th:text="${#temporals.format(reservation.dernierJour, 'dd-MM-yyyy')}"></span>
+        </p>        <p>Détails de la réservation:</p>
         <ul>
             <li th:text="${'Nom: '+ reservation.nom}"></li>
             <li th:text="${'Prénom: '+ reservation.prenom}"></li>
             <li th:text="${'Téléphone: '+ reservation.telephone}"></li>
-            <li th:text="${'Date d''arrivée: '+ #temporals.format(reservation.dateReservationPremierJour, 'dd-MM-yyyy')}"></li>
+            <li th:text="${'Date d''arrivée: '+ #temporals.format(reservation.premierJour, 'dd-MM-yyyy')}"></li>
             <li th:text="${'Date de depart: '+ #temporals.format(dateSortie, 'dd-MM-yyyy')}"></li>
             <li th:text="${'Nombre de personnes: '+ reservation.nbPersonne}"></li>
             <li>Repas:
@@ -71,7 +76,7 @@
     </div>
     
     <div th:if="${statut == 'acceptée'}">
-        <p th:text="${'Vous pouvez arriver le '+ #temporals.format(reservation.dateReservationPremierJour, 'dd-MM-yyyy') + ' à partir de 17h'}"></p><br>
+        <p th:text="${'Vous pouvez arriver le '+ #temporals.format(reservation.premierJour, 'dd-MM-yyyy') + ' à partir de 17h'}"></p><br>
         <p> A bientôt</p>
     </div>
 
