@@ -44,10 +44,10 @@ public class ReservationServiceImpl implements ReservationService {
         
         Set<LocalDate> reserve = reservationRepository.findAll().stream()
                 .filter(reservation -> reservation.getStatus() == ReservationStatus.ACCEPTE)
-                .filter(reservation -> reservation.getDateReservationEntree().isAfter(LocalDate.now().minusDays(1)) || reservation.getDateReservationSortie().isAfter(LocalDate.now()))
+                .filter(reservation -> reservation.getDateReservationPremierJour().isAfter(LocalDate.now().minusDays(1)) || reservation.getDateReservationDernierJour().isAfter(LocalDate.now()))
                 .flatMap(reservation -> {
-                    LocalDate dateEntree = reservation.getDateReservationEntree();
-                    LocalDate dateSortie = reservation.getDateReservationSortie();
+                    LocalDate dateEntree = reservation.getDateReservationPremierJour();
+                    LocalDate dateSortie = reservation.getDateReservationDernierJour();
                     return Stream.iterate(dateEntree, date -> date.plusDays(1))
                             .limit(ChronoUnit.DAYS.between(dateEntree, dateSortie));
                 })
@@ -65,9 +65,12 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public Optional<ReservationEntity> getOneByDate(LocalDate date) {
+        if(date == null)
+            throw new IllegalArgumentException("La date ne peut être null");
+        
         Specification<ReservationEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.and(
-                criteriaBuilder.lessThanOrEqualTo(root.get("dateReservationEntree"),date),
-                criteriaBuilder.greaterThanOrEqualTo(root.get("dateReservationSortie"),date));
+                criteriaBuilder.lessThanOrEqualTo(root.get("dateReservationPremierJour"),date),
+                criteriaBuilder.greaterThanOrEqualTo(root.get("dateReservationDernierJour"),date));
 
         return reservationRepository.findOne(specification);
     }
@@ -80,12 +83,8 @@ public class ReservationServiceImpl implements ReservationService {
         LocalDate start = form.dateReservationEntree();
         LocalDate end = form.dateReservationSortie();
 
-        boolean allDatesAvailable = start.datesUntil(end)
-                .allMatch(this::checkDateAvailable);
+        start.datesUntil(end).forEach(this::ensureDateIsAvailable);
 
-        if(!allDatesAvailable) {
-            throw new DatePriseException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
-        }
         System.out.println(form.repas());
         ReservationEntity entity = ReservationForm.toEntity(form);
 
@@ -106,12 +105,7 @@ public class ReservationServiceImpl implements ReservationService {
         LocalDate start = form.dateReservationEntree();
         LocalDate end = form.dateReservationSortie();
 
-        boolean allDatesAvailable = start.datesUntil(end)
-                .allMatch(this::checkDateAvailable);
-
-        if(!allDatesAvailable) {
-            throw new IllegalArgumentException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
-        }
+        start.datesUntil(end).forEach(this::ensureDateIsAvailable);
         
         ReservationEntity entity = ReservationForm.toEntity(form);
         entity.setStatus(ReservationStatus.ACCEPTE);
@@ -130,17 +124,13 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public void changeReservationStatus(Long id, ReservationStatus status) {
         ReservationEntity entity = reservationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Réservation non trouvée"));
-        
-        boolean allDatesAvailable = entity.getDateReservationEntree().datesUntil(entity.getDateReservationSortie())
-                .allMatch(this::checkDateAvailable);
 
-        if(!allDatesAvailable) {
-            throw new IllegalArgumentException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
-        }
+        if (status == ReservationStatus.ACCEPTE)
+            entity.getDateReservationPremierJour().datesUntil(entity.getDateReservationDernierJour().plusDays(1)).forEach(this::ensureDateIsAvailable);
 
         entity.setStatus(status);
 
-        if(entity.getEmail()!=null && !entity.getEmail().isEmpty()) {
+        if(entity.getEmail()!=null && !entity.getEmail().isBlank()) {
             try {
                 if (entity.getStatus() == ReservationStatus.ACCEPTE)
                     mailService.sendAcceptedMessage(entity);
@@ -165,19 +155,13 @@ public class ReservationServiceImpl implements ReservationService {
         entity.setPrenom(form.prenom());
         entity.setCommentaire(form.commentaire());
         entity.setEmail(form.email());
-        entity.setDateReservationEntree(form.dateReservationEntree());
-        entity.setDateReservationSortie(form.dateReservationSortie());
+        entity.setDateReservationPremierJour(form.dateReservationEntree());
+        entity.setDateReservationDernierJour(form.dateReservationSortie());
         entity.setTelephone(form.telephone());
         entity.setNbPersonne(form.nbPersonne());
         entity.setRepas(new HashMap<>(form.repas()));
+        entity.getDateReservationPremierJour().datesUntil(entity.getDateReservationDernierJour().plusDays(1)).forEach(this::ensureDateIsAvailable);
         entity.setStatus(status);
-
-        boolean allDatesAvailable = entity.getDateReservationEntree().datesUntil(entity.getDateReservationSortie())
-                .allMatch(this::checkDateAvailable);
-
-        if(!allDatesAvailable) {
-            throw new IllegalArgumentException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
-        }
 
         reservationRepository.save(entity);
     }
@@ -206,30 +190,32 @@ public class ReservationServiceImpl implements ReservationService {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("nom")), "%" + form.nom().toLowerCase() + "%"));
             
             if (form.prenom() != null && !form.prenom().isBlank())
-                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("prenom")), "%" + form.prenom().toLowerCase() + "%"));
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("prenom")), "%" + form.prenom().toLowerCase() + "%"));
             
             if (form.dateReservationEntree() != null)
-                predicates.add(criteriaBuilder.equal(root.get("dateReservationEntree"), form.dateReservationEntree()));
+                predicates.add(criteriaBuilder.equal(root.get("dateReservationPremierJour"), form.dateReservationEntree()));
         
             if (form.dateReservationSortie() != null)
-                predicates.add(criteriaBuilder.equal(root.get("dateReservationSortie"), form.dateReservationSortie()));
+                predicates.add(criteriaBuilder.equal(root.get("dateReservationDernierJour"), form.dateReservationSortie()));
         
             if (form.email() != null && !form.email().isBlank())
-                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("email")), "%" + form.email().toLowerCase() + "%"));
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + form.email().toLowerCase() + "%"));
         
             if (form.telephone() != null && !form.telephone().isBlank())
-                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("telephone")), "%" + form.telephone().toLowerCase() + "%"));
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("telephone")), "%" + form.telephone().toLowerCase() + "%"));
             
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 
-    private boolean checkDateAvailable(LocalDate date) {
+    private void ensureDateIsAvailable(LocalDate date) {
         Calendrier calendrier = dateNonDispo();
         boolean dateIsReserved = calendrier.datesReservees().contains(date);
         boolean dateIsFermeture = calendrier.datesFermetures().contains(date);
 
-        return !dateIsReserved && !dateIsFermeture;
+        if(dateIsReserved || dateIsFermeture)
+            throw new DatePriseException("Une ou plusieurs dates de l'intervalle ne sont pas disponibles pour la réservation");
+
     }
     
     

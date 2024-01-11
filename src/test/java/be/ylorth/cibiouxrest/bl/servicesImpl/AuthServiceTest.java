@@ -1,4 +1,4 @@
-package be.ylorth.cibiouxrest.bl;
+package be.ylorth.cibiouxrest.bl.servicesImpl;
 
 import be.ylorth.cibiouxrest.bl.servicesImpl.AuthServiceImpl;
 import be.ylorth.cibiouxrest.dal.models.UserEntity;

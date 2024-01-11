@@ -29,6 +29,12 @@ public class FermetureServiceImpl implements FermetureService{
 
     @Override
     public void create(Set<LocalDate> dates) {
+        if(dates == null || dates.isEmpty())
+            throw new IllegalArgumentException("Les dates ne peuvent être nulles");
+
+        if(dates.stream().anyMatch(date->date.isBefore(LocalDate.now())))
+            throw new IllegalArgumentException("Les dates ne peuvent être dans le passés");
+        
         dates.stream()
                 .filter(this::dateFermetureValide)
                 .map(this::dateToFermetureEntity)

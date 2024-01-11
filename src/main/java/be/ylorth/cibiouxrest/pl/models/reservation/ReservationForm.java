@@ -28,8 +28,8 @@ public record ReservationForm(
         entity.setNbPersonne(form.nbPersonne());
         entity.setTelephone(form.telephone());
         entity.setCommentaire(form.commentaire());
-        entity.setDateReservationSortie(form.dateReservationSortie().minusDays(1));
-        entity.setDateReservationEntree(form.dateReservationEntree());
+        entity.setDateReservationDernierJour(form.dateReservationSortie().minusDays(1));
+        entity.setDateReservationPremierJour(form.dateReservationEntree());
         entity.setRepas(form.repas());
         return entity;
     }
