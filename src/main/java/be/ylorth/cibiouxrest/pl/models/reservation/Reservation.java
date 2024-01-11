@@ -21,6 +21,6 @@ public record Reservation(
         ReservationStatus status
 ) {
     public static Reservation fromEntity(ReservationEntity entity){
-        return new Reservation(entity.getId(), entity.getNom(), entity.getPrenom(), entity.getDateReservationPremierJour(), entity.getDateReservationDernierJour(), entity.getEmail(), entity.getTelephone(), entity.getNbPersonne(), entity.getCommentaire(), new HashMap<>(entity.getRepas()),entity.getStatus());
+        return new Reservation(entity.getId(), entity.getNom(), entity.getPrenom(), entity.getDateReservationPremierJour(), entity.getDateReservationDernierJour().plusDays(1), entity.getEmail(), entity.getTelephone(), entity.getNbPersonne(), entity.getCommentaire(), new HashMap<>(entity.getRepas()),entity.getStatus());
     }
 }

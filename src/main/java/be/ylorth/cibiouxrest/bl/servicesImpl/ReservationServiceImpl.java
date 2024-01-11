@@ -44,10 +44,10 @@ public class ReservationServiceImpl implements ReservationService {
         
         Set<LocalDate> reserve = reservationRepository.findAll().stream()
                 .filter(reservation -> reservation.getStatus() == ReservationStatus.ACCEPTE)
-                .filter(reservation -> reservation.getDateReservationPremierJour().isAfter(LocalDate.now().minusDays(1)) || reservation.getDateReservationDernierJour().isAfter(LocalDate.now()))
+                .filter(reservation -> reservation.getDateReservationDernierJour().isAfter(LocalDate.now()))
                 .flatMap(reservation -> {
                     LocalDate dateEntree = reservation.getDateReservationPremierJour();
-                    LocalDate dateSortie = reservation.getDateReservationDernierJour();
+                    LocalDate dateSortie = reservation.getDateReservationDernierJour().plusDays(1);
                     return Stream.iterate(dateEntree, date -> date.plusDays(1))
                             .limit(ChronoUnit.DAYS.between(dateEntree, dateSortie));
                 })
