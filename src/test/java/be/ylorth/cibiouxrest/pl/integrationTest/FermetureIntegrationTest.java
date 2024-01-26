@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,9 +21,6 @@ import java.time.LocalDate;
 public class FermetureIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
-
-    private final MediaType contentType = new MediaType(MediaType.APPLICATION_JSON.getType(),
-            MediaType.APPLICATION_JSON.getSubtype(), Charset.forName("utf8"));
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -87,5 +83,14 @@ public class FermetureIntegrationTest {
         this.mockMvc.perform(delete("/fermeture/delete")
                         .param("date", ""))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testDelete_Unauthorized() throws Exception {
+        LocalDate dateToDelete = LocalDate.now();
+
+        this.mockMvc.perform(delete("/fermeture/delete")
+                        .param("date", dateToDelete.toString()))
+                .andExpect(status().isForbidden());
     }
 }
