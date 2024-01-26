@@ -16,6 +16,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.security.PrivateKey;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -81,7 +82,7 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("form can't be null");
 
         LocalDate start = form.premierJour();
-        LocalDate end = form.dernierJour();
+        LocalDate end = form.dernierJour().plusDays(1);
 
         start.datesUntil(end).forEach(this::ensureDateIsAvailable);
 
@@ -103,7 +104,7 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("form can't be null");
 
         LocalDate start = form.premierJour();
-        LocalDate end = form.dernierJour();
+        LocalDate end = form.dernierJour().plusDays(1);
 
         start.datesUntil(end).forEach(this::ensureDateIsAvailable);
         
@@ -146,18 +147,30 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public void updateReservation(Long id, ReservationForm form, ReservationStatus status) {
+        
         if(form==null)
             throw new IllegalArgumentException("form can't be null");
+
+        if(status==null)
+            throw new IllegalArgumentException("status can't be null");
         
         ReservationEntity entity = reservationRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Réservation non trouvée"));
+
+        boolean statutChanged = !((form.email() == null && entity.getEmail() == null) || form.email()!= null && form.email().equals(entity.getEmail()));
         
         entity.setNom(form.nom());
         entity.setPrenom(form.prenom());
         entity.setCommentaire(form.commentaire());
+        if(entity.getEmail()!=null && form.email()==null)
+            throw new IllegalArgumentException("L'email existant ne peut être supprimé");
         entity.setEmail(form.email());
-        if(!(entity.getPremierJour().equals(form.premierJour()) && entity.getDernierJour().equals(form.dernierJour().minusDays(1)))){
-            form.premierJour().datesUntil(form.dernierJour())
-                    .filter(date-> !(date.isAfter(entity.getPremierJour().minusDays(1)) && date.isBefore(entity.getDernierJour().plusDays(1))))
+        if(!(entity.getStatus()==ReservationStatus.ACCEPTE && (entity.getPremierJour().equals(form.premierJour()) && entity.getDernierJour().equals(form.dernierJour())))){
+            form.premierJour().datesUntil(form.dernierJour().plusDays(1))
+                    .filter(date-> {
+                        if(entity.getStatus() == ReservationStatus.ACCEPTE)
+                            return !(date.isAfter(entity.getPremierJour().minusDays(1)) && date.isBefore(entity.getDernierJour().plusDays(1)));
+                        return true;
+                    })
                     .forEach(this::ensureDateIsAvailable);
             
             entity.setPremierJour(form.premierJour());
@@ -168,6 +181,17 @@ public class ReservationServiceImpl implements ReservationService {
         entity.setRepas(new HashMap<>(form.repas()));
 
         entity.setStatus(status);
+
+        if(statutChanged && entity.getEmail()!=null && !entity.getEmail().isBlank()) {
+            try {
+                if (entity.getStatus() == ReservationStatus.ACCEPTE)
+                    mailService.sendAcceptedMessage(entity);
+                else if (entity.getStatus() == ReservationStatus.REFUSE)
+                    mailService.sendDeniedMessage(entity);
+            } catch (MessagingException ex) {
+                System.out.println("Erreur envoi mail: " + ex);
+            }
+        }
 
         reservationRepository.save(entity);
     }

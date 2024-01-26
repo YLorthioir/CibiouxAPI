@@ -13,6 +13,8 @@ public class DateOrderValidator implements ConstraintValidator<ValidDateOrder, R
 
     @Override
     public boolean isValid(final ReservationForm form, final ConstraintValidatorContext context) {
+        if(form.premierJour() == null || form.dernierJour() == null)
+            throw new IllegalArgumentException("Le premier jour ou le dernier jour ne peuvent pas être null");
         return form.dernierJour().isAfter(form.premierJour().minusDays(1));
     }
 }

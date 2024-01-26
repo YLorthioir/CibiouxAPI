@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/reservation/getPendings").authenticated()
                         .requestMatchers(HttpMethod.POST,"/reservation/search").authenticated()
                         .requestMatchers(HttpMethod.GET,"/reservation/{id:[0-9]+}").authenticated()
+                        .requestMatchers(HttpMethod.GET,"/reservation/getByDate/{date}").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/reservation/{id:[0-9]+}").permitAll()
                         .requestMatchers(HttpMethod.DELETE,"/reservation/{id:[0-9]+}").authenticated()
                         .requestMatchers(HttpMethod.POST,"/reservation/createVisitor").permitAll()

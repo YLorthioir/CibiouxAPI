@@ -4,15 +4,19 @@ import be.ylorth.cibiouxrest.bl.exception.DatePriseException;
 import be.ylorth.cibiouxrest.pl.models.Error;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ControllerAdvisor {
@@ -76,6 +80,29 @@ public class ControllerAdvisor {
 
         Error errorDTO = new Error(
                 ex.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now(),
+                req.getRequestURI());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType( MediaType.APPLICATION_JSON );
+
+        return ResponseEntity.status( HttpStatus.BAD_REQUEST)
+                .headers( headers )
+                .body( errorDTO );
+
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Error> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest req){
+
+        BindingResult result = ex.getBindingResult();
+        
+        String errorMessage = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+        
+        Error errorDTO = new Error(
+                errorMessage,
                 HttpStatus.BAD_REQUEST,
                 LocalDateTime.now(),
                 req.getRequestURI());
