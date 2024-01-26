@@ -70,4 +70,22 @@ public class ControllerAdvisor {
                 .body( errorDTO );
 
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Error> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest req){
+
+        Error errorDTO = new Error(
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now(),
+                req.getRequestURI());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType( MediaType.APPLICATION_JSON );
+
+        return ResponseEntity.status( HttpStatus.BAD_REQUEST)
+                .headers( headers )
+                .body( errorDTO );
+
+    }
 }
