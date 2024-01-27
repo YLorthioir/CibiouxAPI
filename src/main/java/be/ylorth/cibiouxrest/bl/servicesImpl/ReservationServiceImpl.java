@@ -13,6 +13,7 @@ import be.ylorth.cibiouxrest.pl.models.reservation.ReservationSearchForm;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
+import jdk.jshell.Snippet;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -68,10 +69,12 @@ public class ReservationServiceImpl implements ReservationService {
     public Optional<ReservationEntity> getOneByDate(LocalDate date) {
         if(date == null)
             throw new IllegalArgumentException("La date ne peut être null");
-        
+
         Specification<ReservationEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.and(
                 criteriaBuilder.lessThanOrEqualTo(root.get("premierJour"),date),
-                criteriaBuilder.greaterThanOrEqualTo(root.get("dernierJour"),date));
+                criteriaBuilder.greaterThanOrEqualTo(root.get("dernierJour"),date),
+                criteriaBuilder.equal(root.get("status"), ReservationStatus.ACCEPTE)
+        );
 
         return reservationRepository.findOne(specification);
     }
