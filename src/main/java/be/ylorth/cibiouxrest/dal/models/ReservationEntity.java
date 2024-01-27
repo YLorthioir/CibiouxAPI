@@ -44,5 +44,21 @@ public class ReservationEntity {
     @MapKeyColumn(name = "date")
     @Column(name = "repas")
     private Map<LocalDate, Boolean> repas;
-    
+
+    @Override
+    public String toString() {
+        return "ReservationEntity{" +
+                "id=" + id +
+                ", nom='" + nom + '\'' +
+                ", prenom='" + prenom + '\'' +
+                ", premierJour=" + premierJour +
+                ", dernierJour=" + dernierJour +
+                ", email='" + email + '\'' +
+                ", telephone='" + telephone + '\'' +
+                ", nbPersonne=" + nbPersonne +
+                ", commentaire='" + commentaire + '\'' +
+                ", status=" + status +
+                ", repas=" + repas +
+                '}';
+    }
 }

@@ -102,15 +102,15 @@ public class ReservationIntegrationTest {
     public void testGetOneByDate_OK() throws Exception {
 
         ReservationEntity reservationAttente = new ReservationEntity();
-        reservationAttente.setNom("NomTest3");
-        reservationAttente.setPrenom("PrenomTest3");
-        reservationAttente.setStatus(ReservationStatus.REFUSE);
+        reservationAttente.setNom("NomTest2");
+        reservationAttente.setPrenom("PrenomTest2");
+        reservationAttente.setStatus(ReservationStatus.ACCEPTE);
         reservationAttente.setNbPersonne(2);
-        reservationAttente.setPremierJour(LocalDate.now().plusDays(8));
-        reservationAttente.setDernierJour(LocalDate.now().plusDays(9));
+        reservationAttente.setPremierJour(LocalDate.now().plusDays(2));
+        reservationAttente.setDernierJour(LocalDate.now().plusDays(3));
         
 
-        mockMvc.perform(get("/reservation/getByDate/" + LocalDate.now().plusDays(8)))
+        mockMvc.perform(get("/reservation/getByDate/" + LocalDate.now().plusDays(2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.prenom", is(reservationAttente.getPrenom())))
                 .andExpect(jsonPath("$.status", is(reservationAttente.getStatus().toString())))
