@@ -15,7 +15,9 @@ public class ReservationAudit {
     private Long reservationId;
     private String action;
     private String nomChamp;
+    @Column(length = 1000)
     private String ancienneValeur;
+    @Column(length = 1000)
     private String nouvelleValeur;
     private LocalDateTime heureDeModification;
     
