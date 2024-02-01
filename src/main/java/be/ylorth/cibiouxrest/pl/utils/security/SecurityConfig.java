@@ -87,7 +87,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(serverName));
+        config.setAllowedOrigins(allowedOrigins());
 
         config.setAllowedHeaders(List.of("*"));
 
@@ -95,6 +95,10 @@ public class SecurityConfig {
 
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+    
+    private List<String> allowedOrigins(){
+        return List.of(serverName,serverName.replace("https://", "https://www."));
     }
 
 }
