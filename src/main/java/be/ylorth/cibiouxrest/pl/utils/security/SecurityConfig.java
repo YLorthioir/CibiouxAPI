@@ -19,6 +19,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -98,7 +100,7 @@ public class SecurityConfig {
     }
     
     private List<String> allowedOrigins(){
-        return List.of(serverName,serverName.replace("https://", "https://www."));
+        return List.of(serverName.split(", "));
     }
 
 }
