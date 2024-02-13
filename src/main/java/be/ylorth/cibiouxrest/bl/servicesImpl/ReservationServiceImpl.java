@@ -15,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import jdk.jshell.Snippet;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.security.PrivateKey;
@@ -213,6 +214,13 @@ public class ReservationServiceImpl implements ReservationService {
     public List<ReservationEntity> getPendings() {
         Specification<ReservationEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), ReservationStatus.EN_ATTENTE);
         return reservationRepository.findAll(specification);
+    }
+
+    @Scheduled(cron = "0 0 18 * * ?", zone = "Europe/Paris")
+    private void pendingScheduled(){
+        if(!getPendings().isEmpty()){
+            //TODO envoi mail
+        }
     }
     
     private Specification<ReservationEntity> specificationBuilder(ReservationSearchForm form){
