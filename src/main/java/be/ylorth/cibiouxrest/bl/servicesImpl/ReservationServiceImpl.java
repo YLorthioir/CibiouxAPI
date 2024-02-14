@@ -219,7 +219,11 @@ public class ReservationServiceImpl implements ReservationService {
     @Scheduled(cron = "0 0 18 * * ?", zone = "Europe/Paris")
     private void pendingScheduled(){
         if(!getPendings().isEmpty()){
-            mailService.sendPendingsMessage(getPendings().size()); //TODO impl sendPendingsMessage
+            try {
+                mailService.sendPendingsMessage(getPendings().size());
+            } catch (MessagingException ex) {
+                System.out.println("Erreur envoi mail: " + ex);
+            }
         }
     }
     
