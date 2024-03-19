@@ -37,7 +37,7 @@ public class ReservationAuditListener{
         ReservationAudit auditEntry = new ReservationAudit();
         auditEntry.setHeureDeModification(LocalDateTime.now());
 
-        ReservationEntity initialState = reservationRepository.findById(reservation.getId()).get();
+        ReservationEntity initialState = reservationRepository.findById(reservation.getId()).orElseThrow();
 
         auditEntry.setAction("UPDATE");
         List<String> modifiedFields = getModifiedFields(initialState, reservation);
