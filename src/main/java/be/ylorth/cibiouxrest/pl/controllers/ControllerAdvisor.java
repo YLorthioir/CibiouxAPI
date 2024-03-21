@@ -26,7 +26,6 @@ public class ControllerAdvisor {
 
         Error errorDTO = new Error(
                 ex.getMessage(),
-                HttpStatus.UNAUTHORIZED,
                 LocalDateTime.now(),
                 req.getRequestURI());
 
@@ -44,7 +43,6 @@ public class ControllerAdvisor {
 
         Error errorDTO = new Error(
                 ex.getMessage(),
-                HttpStatus.NOT_FOUND,
                 LocalDateTime.now(),
                 req.getRequestURI());
 
@@ -62,7 +60,6 @@ public class ControllerAdvisor {
 
         Error errorDTO = new Error(
                 ex.getMessage(),
-                HttpStatus.BAD_REQUEST,
                 LocalDateTime.now(),
                 req.getRequestURI());
 
@@ -80,7 +77,6 @@ public class ControllerAdvisor {
 
         Error errorDTO = new Error(
                 ex.getMessage(),
-                HttpStatus.BAD_REQUEST,
                 LocalDateTime.now(),
                 req.getRequestURI());
 
@@ -103,7 +99,6 @@ public class ControllerAdvisor {
         
         Error errorDTO = new Error(
                 errorMessage,
-                HttpStatus.BAD_REQUEST,
                 LocalDateTime.now(),
                 req.getRequestURI());
 

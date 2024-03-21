@@ -128,6 +128,9 @@ public class ReservationServiceImpl implements ReservationService {
     
     @Override
     public void changeReservationStatus(Long id, ReservationStatus status) {
+        if(status==null)
+            throw new IllegalArgumentException("status can't be null");
+        
         ReservationEntity entity = reservationRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Réservation non trouvée"));
 
         if (status == ReservationStatus.ACCEPTE)
